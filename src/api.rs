@@ -20,9 +20,13 @@ use crate::models::*;
 mod onvista;
 mod schema;
 
+use dotenv::dotenv;
+use std::env;
+
 #[get("/<isin>")]
 fn newest(isin: String) -> Json<Value> {
-    match Price::newest_by_isin(isin, &establish_connection()) {
+    let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
+    match Price::newest_by_isin(isin, &establish_connection(&database_url)) {
         // todo: make Serialize work for price and replace all of this
         Some(price) => Json(json!({
             "status": 200,
@@ -43,6 +47,7 @@ fn newest(isin: String) -> Json<Value> {
 }
 
 fn main() {
+    dotenv().ok();    
     rocket::ignite()
         .mount("/rstock/newest/", routes![newest])
         .launch();
