@@ -2,6 +2,6 @@
 
 This crate consists of two parts:
 
-- A daemon that collects price data from the web and stores it in a database.
+- A daemon that scrapes the web for price data and collects it into a database.
 
-- An API that offers access to the gathered price data.
+- An API that offers access to the collected price data.
