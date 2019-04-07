@@ -3,12 +3,14 @@ use chrono::{DateTime, Utc};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 
+use serde::Serialize;
+
 use crate::schema::prices;
 use crate::schema::prices::dsl::prices as all_prices;
 use crate::schema::watchlist;
 use crate::schema::watchlist::dsl::watchlist as all_watchlist;
 
-#[derive(Queryable, Debug, Clone)]
+#[derive(Queryable, Debug, Clone, Serialize)]
 pub struct Price {
     pub id: i32,
     pub name: String,
@@ -45,6 +47,7 @@ pub struct NewItem {
 }
 
 impl Price {
+    #[allow(dead_code)]
     pub fn find_by_id(id: i32, conn: &PgConnection) -> Option<Price> {
         let price_list = all_prices
             .find(id)
@@ -58,14 +61,15 @@ impl Price {
         }
     }
 
+    #[allow(dead_code)]
     pub fn newest_by_isin(isin: String, conn: &PgConnection) -> Option<Price> {
         let price_list = all_prices
-            .filter (prices::isin.eq (isin))
+            .filter(prices::isin.eq(isin))
             .order(prices::time.desc())
             .load::<Price>(conn)
             .expect("Error loading prices");
         if price_list.len() > 0 {
-            Some(price_list[0].clone ())
+            Some(price_list[0].clone())
         } else {
             None
         }
@@ -73,12 +77,15 @@ impl Price {
 }
 
 impl Item {
+    #[allow(dead_code)]
     pub fn all(conn: &PgConnection) -> Vec<Item> {
         all_watchlist
             .order(watchlist::id.desc())
             .load::<Item>(conn)
             .expect("Error loading items")
     }
+
+    #[allow(dead_code)]
     pub fn find_by_id(id: i32, conn: &PgConnection) -> Option<Item> {
         let item_list = all_watchlist
             .find(id)

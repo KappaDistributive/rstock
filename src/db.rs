@@ -13,6 +13,6 @@ pub fn update_prices(conn: &PgConnection) {
     for item in watchlist {
         diesel::insert_into(prices::table)
             .values(&onvista_etf_now(item.isin))
-            .execute(conn);
+            .execute(conn).ok();
     }
 }
