@@ -1,8 +1,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
-
+use diesel::pg::PgConnection;
 use serde::Serialize;
 
 use crate::schema::prices;

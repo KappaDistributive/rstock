@@ -13,6 +13,6 @@ use std::env;
 fn main() {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
-    let conn = establish_connection(&database_url);
+    let conn = connect(database_url).get().unwrap ();
     update_prices(&conn);
 }

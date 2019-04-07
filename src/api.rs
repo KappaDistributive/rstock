@@ -24,9 +24,8 @@ use std::env;
 
 
 #[get("/<isin>")]
-fn latest(isin: String) -> Json<Value>  {
-    let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
-    match Price::newest_by_isin(isin, &establish_connection(&database_url)) {
+fn latest(isin: String, conn: Connection) -> Json<Value>  {
+    match Price::newest_by_isin(isin, &conn) {
         Some(price) => {
             Json (json!({
                 "status": 200,
@@ -41,8 +40,11 @@ fn latest(isin: String) -> Json<Value>  {
 }
 
 fn main() {
-    dotenv().ok();    
+    dotenv().ok();
+    let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
+    let pool = connect(database_url);
     rocket::ignite()
+        .manage(pool)
         .mount("/rstock/latest/", routes![latest])
         .launch();
 }
