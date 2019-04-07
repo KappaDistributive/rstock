@@ -39,6 +39,22 @@ fn latest(isin: String, conn: Connection) -> Json<Value>  {
     }
 }
 
+#[get("/<isin>")]
+fn all_by_isin(isin: String, conn: Connection) -> Json<Value>  {
+    Json (json!({
+            "status": 404,
+            "result": ResponsePrice::from_prices(Price::all(Some(isin) ,&conn)),
+        }))
+}
+
+#[get("/")]
+fn all(conn: Connection) -> Json<Value>  {
+    Json (json!({
+            "status": 404,
+            "result": ResponsePrice::from_prices(Price::all(None,&conn)),
+        }))
+}
+
 fn main() {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
@@ -46,5 +62,6 @@ fn main() {
     rocket::ignite()
         .manage(pool)
         .mount("/rstock/latest/", routes![latest])
+        .mount("/rstock/all/", routes![all_by_isin, all])
         .launch();
 }

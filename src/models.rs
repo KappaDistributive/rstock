@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
-use diesel::prelude::*;
 use diesel::pg::PgConnection;
+use diesel::prelude::*;
 use serde::Serialize;
 
 use crate::schema::prices;
@@ -57,6 +57,21 @@ pub struct NewItem {
 
 impl Price {
     #[allow(dead_code)]
+    pub fn all(isin: Option<String>, conn: &PgConnection) -> Vec<Price> {
+        match isin {
+            Some(i) => all_prices
+                .filter(prices::isin.eq(i))
+                .order(prices::time.desc())
+                .load::<Price>(conn)
+                .expect("Error loading item"),
+            None => all_prices
+                .order(prices::time.desc())
+                .load::<Price>(conn)
+                .expect("Error loading item"),
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn find_by_id(id: i32, conn: &PgConnection) -> Option<Price> {
         let price_list = all_prices
             .find(id)
@@ -86,20 +101,25 @@ impl Price {
 }
 
 impl ResponsePrice {
-    
     #[allow(dead_code)]
     pub fn from_price(price: &Price) -> ResponsePrice {
         ResponsePrice {
-            name: price.name.clone (),
-            isin: price.isin.clone (),
-            kind: price.kind.clone (),
-            date: price.time.format("%Y-%m-%d").to_string (),
-            time: price.time.format("%H:%M:%S").to_string (),
-            price: price.price.clone (),
-            currency: price.currency.clone (),
+            name: price.name.clone(),
+            isin: price.isin.clone(),
+            kind: price.kind.clone(),
+            date: price.time.format("%Y-%m-%d").to_string(),
+            time: price.time.format("%H:%M:%S").to_string(),
+            price: price.price.clone(),
+            currency: price.currency.clone(),
         }
     }
 
+    pub fn from_prices(prices: Vec<Price>) -> Vec<ResponsePrice> {
+        prices
+            .iter()
+            .map(|p| ResponsePrice::from_price(&p))
+            .collect()
+    }
 }
 
 impl Item {
