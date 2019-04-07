@@ -114,6 +114,7 @@ impl ResponsePrice {
         }
     }
 
+    #[allow (dead_code)]
     pub fn from_prices(prices: Vec<Price>) -> Vec<ResponsePrice> {
         prices
             .iter()
@@ -123,6 +124,7 @@ impl ResponsePrice {
 }
 
 impl Item {
+    
     #[allow(dead_code)]
     pub fn all(conn: &PgConnection) -> Vec<Item> {
         all_watchlist
