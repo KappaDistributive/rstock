@@ -30,7 +30,7 @@ fn latest(isin: String) -> Json<Value>  {
         Some(price) => {
             Json (json!({
                 "status": 200,
-                "result": price,
+                "result": ResponsePrice::from_price(&price),
             }))
         },
         None => Json (json!({

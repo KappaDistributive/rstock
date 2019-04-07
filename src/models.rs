@@ -32,6 +32,16 @@ pub struct NewPrice {
     pub currency: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct ResponsePrice {
+    pub name: String,
+    pub isin: String,
+    pub kind: String,
+    pub date: String,
+    pub time: String,
+    pub price: BigDecimal,
+    pub currency: String,
+}
 #[derive(Queryable, Debug, Clone)]
 pub struct Item {
     pub id: i32,
@@ -74,6 +84,23 @@ impl Price {
             None
         }
     }
+}
+
+impl ResponsePrice {
+    
+    #[allow(dead_code)]
+    pub fn from_price(price: &Price) -> ResponsePrice {
+        ResponsePrice {
+            name: price.name.clone (),
+            isin: price.isin.clone (),
+            kind: price.kind.clone (),
+            date: price.time.format("%Y-%m-%d").to_string (),
+            time: price.time.format("%H:%M:%S").to_string (),
+            price: price.price.clone (),
+            currency: price.currency.clone (),
+        }
+    }
+
 }
 
 impl Item {
