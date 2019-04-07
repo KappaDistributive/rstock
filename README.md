@@ -6,8 +6,8 @@ This crate consists of two parts:
 
 - An API that offers access to the collected price data.
 
-You need to provide your own .env file in the crates root that contains the following line
+You need to set the following environment variable:
 
 `DATABASE_URL=postgres://<USER>:<PASSWORD>@<IP ADDRESS>/<DATABASE>`
 
-You also need to fill the 'watchlist' table with ISIN's that you want to track.
+You also need to fill the 'watchlist' table with ISIN that you want to track.
