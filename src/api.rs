@@ -22,7 +22,7 @@ use dotenv::dotenv;
 use std::env;
 
 #[get("/<isin>")]
-fn latest(isin: String, state: State<Pool>) -> Result<Json<Price>, Status> {
+fn latest(isin: String, state: State<Pool>) -> Result<Json<ResponsePrice>, Status> {
     match state.get() {
         Ok(conn) => match Price::newest_by_isin(isin, &conn) {
             Ok(price) => Ok(Json(ReponsePrice::from_price(price) )),
@@ -33,7 +33,7 @@ fn latest(isin: String, state: State<Pool>) -> Result<Json<Price>, Status> {
 }
 
 #[get("/<isin>")]
-fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
+fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<ResponsePrice>>, Status> {
     match state.get() {
         Ok(conn) => match Price::all(Some(isin), &conn) {
             Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
@@ -44,7 +44,7 @@ fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<Price>>, Sta
 }
 
 #[get("/")]
-fn all(state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
+fn all(state: State<Pool>) -> Result<Json<Vec<ResponsePrice>>, Status> {
     match state.get() {
         Ok(conn) => match Price::all(None, &conn) {
             Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
