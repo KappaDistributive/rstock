@@ -25,7 +25,7 @@ use std::env;
 fn latest(isin: String, state: State<Pool>) -> Result<Json<Price>, Status> {
     match state.get() {
         Ok(conn) => match Price::newest_by_isin(isin, &conn) {
-            Ok(price) => Ok(Json(price)),
+            Ok(price) => Ok(Json(ReponsePrice::from_price(price) )),
             Err(_error) => Err(Status::NotFound),
         },
         Err(_error) => Err(Status::InternalServerError),
@@ -36,7 +36,7 @@ fn latest(isin: String, state: State<Pool>) -> Result<Json<Price>, Status> {
 fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
     match state.get() {
         Ok(conn) => match Price::all(Some(isin), &conn) {
-            Ok(prices) => Ok(Json(prices)),
+            Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
             Err(_error) => Err(Status::InternalServerError),
         },
         Err(_error) => Err(Status::InternalServerError),
@@ -47,7 +47,7 @@ fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<Price>>, Sta
 fn all(state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
     match state.get() {
         Ok(conn) => match Price::all(None, &conn) {
-            Ok(prices) => Ok(Json(prices)),
+            Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
             Err(_error) => Err(Status::InternalServerError),
         },
         Err(_error) => Err(Status::InternalServerError),
