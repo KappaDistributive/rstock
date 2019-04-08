@@ -25,7 +25,7 @@ use std::env;
 fn latest(isin: String, state: State<Pool>) -> Result<Json<ResponsePrice>, Status> {
     match state.get() {
         Ok(conn) => match Price::newest_by_isin(isin, &conn) {
-            Ok(price) => Ok(Json(ReponsePrice::from_price(price) )),
+            Ok(price) => Ok(Json(ResponsePrice::from_price(&price) )),
             Err(_error) => Err(Status::NotFound),
         },
         Err(_error) => Err(Status::InternalServerError),
