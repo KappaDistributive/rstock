@@ -1,14 +1,12 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
 extern crate rocket;
+use rocket::http::Status;
 use rocket::State;
 extern crate rocket_contrib;
 use rocket_contrib::json::Json;
 
 extern crate serde_derive;
-#[macro_use]
-extern crate serde_json;
-use serde_json::Value;
 
 #[macro_use]
 extern crate diesel;
@@ -24,33 +22,36 @@ use dotenv::dotenv;
 use std::env;
 
 #[get("/<isin>")]
-fn latest(isin: String, state: State<Pool>) -> Json<Value> {
-    match Price::newest_by_isin(isin, &state.get().expect("Couldn't connect to database.")) {
-        Some(price) => Json(json!({
-            "status": 200,
-            "result": ResponsePrice::from_price(&price),
-        })),
-        None => Json(json!({
-            "status": 404,
-            "result": null,
-        })),
+fn latest(isin: String, state: State<Pool>) -> Result<Json<Price>, Status> {
+    match state.get() {
+        Ok(conn) => match Price::newest_by_isin(isin, &conn) {
+            Ok(price) => Ok(Json(price)),
+            Err(_error) => Err(Status::NotFound),
+        },
+        Err(_error) => Err(Status::InternalServerError),
     }
 }
 
 #[get("/<isin>")]
-fn all_by_isin(isin: String, state: State<Pool>) -> Json<Value> {
-    Json(json!({
-        "status": 404,
-        "result": ResponsePrice::from_prices(Price::all(Some(isin) , &state.get().expect("Couldn't connect to database."))),
-    }))
+fn all_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
+    match state.get() {
+        Ok(conn) => match Price::all(Some(isin), &conn) {
+            Ok(prices) => Ok(Json(prices)),
+            Err(_error) => Err(Status::InternalServerError),
+        },
+        Err(_error) => Err(Status::InternalServerError),
+    }
 }
 
 #[get("/")]
-fn all(state: State<Pool>) -> Json<Value> {
-    Json(json!({
-        "status": 404,
-        "result": ResponsePrice::from_prices(Price::all(None,&state.get().expect("Couldn't connect to database."))),
-    }))
+fn all(state: State<Pool>) -> Result<Json<Vec<Price>>, Status> {
+    match state.get() {
+        Ok(conn) => match Price::all(None, &conn) {
+            Ok(prices) => Ok(Json(prices)),
+            Err(_error) => Err(Status::InternalServerError),
+        },
+        Err(_error) => Err(Status::InternalServerError),
+    }
 }
 
 fn main() {
@@ -59,8 +60,8 @@ fn main() {
     let pool = connect(database_url);
     rocket::ignite()
         .manage(pool)
-        .mount("/rstock/all/", routes![all_by_isin])
+        .mount("/rstock/all/", routes![all,all_by_isin])
+        .mount("/rstock/latest/", routes![latest])
         .launch();
 
-    //    .mount("/rstock/latest/", routes![latest])
 }

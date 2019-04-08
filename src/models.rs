@@ -2,6 +2,7 @@ use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel::result::Error;
 use serde::Serialize;
 
 use crate::schema::prices;
@@ -57,46 +58,39 @@ pub struct NewItem {
 
 impl Price {
     #[allow(dead_code)]
-    pub fn all(isin: Option<String>, conn: &PgConnection) -> Vec<Price> {
+    pub fn all(isin: Option<String>, conn: &PgConnection) -> QueryResult<Vec<Price>> {
         match isin {
             Some(i) => all_prices
                 .filter(prices::isin.eq(i))
                 .order(prices::time.desc())
-                .load::<Price>(conn)
-                .expect("Error loading item"),
-            None => all_prices
-                .order(prices::time.desc())
-                .load::<Price>(conn)
-                .expect("Error loading item"),
+                .load::<Price>(conn),
+            None => all_prices.order(prices::time.desc()).load::<Price>(conn),
         }
     }
 
     #[allow(dead_code)]
-    pub fn find_by_id(id: i32, conn: &PgConnection) -> Option<Price> {
-        let price_list = all_prices
-            .find(id)
-            .load::<Price>(conn)
-            .expect("Error loading item");
-
-        if price_list.len() > 0 {
-            Some(price_list[0].clone())
-        } else {
-            None
-        }
+    pub fn find_by_id(id: i32, conn: &PgConnection) -> QueryResult<Price> {
+        all_prices.find(id).load::<Price>(conn).and_then(|prices| {
+            if prices.len() > 0 {
+                Ok(prices[0].clone())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
     }
 
     #[allow(dead_code)]
-    pub fn newest_by_isin(isin: String, conn: &PgConnection) -> Option<Price> {
-        let price_list = all_prices
+    pub fn newest_by_isin(isin: String, conn: &PgConnection) -> QueryResult<Price> {
+        all_prices
             .filter(prices::isin.eq(isin))
-            .order(prices::time.desc())
             .load::<Price>(conn)
-            .expect("Error loading prices");
-        if price_list.len() > 0 {
-            Some(price_list[0].clone())
-        } else {
-            None
-        }
+            .and_then(|prices| {
+                if prices.len() > 0 {
+                    Ok(prices[0].clone())
+                } else {
+                    Err(Error::NotFound)
+                }
+            })
     }
 }
 
@@ -114,7 +108,7 @@ impl ResponsePrice {
         }
     }
 
-    #[allow (dead_code)]
+    #[allow(dead_code)]
     pub fn from_prices(prices: Vec<Price>) -> Vec<ResponsePrice> {
         prices
             .iter()
@@ -124,7 +118,6 @@ impl ResponsePrice {
 }
 
 impl Item {
-    
     #[allow(dead_code)]
     pub fn all(conn: &PgConnection) -> Vec<Item> {
         all_watchlist
