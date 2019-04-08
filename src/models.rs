@@ -83,6 +83,7 @@ impl Price {
     pub fn newest_by_isin(isin: String, conn: &PgConnection) -> QueryResult<Price> {
         all_prices
             .filter(prices::isin.eq(isin))
+            .order (prices::time.desc ())
             .load::<Price>(conn)
             .and_then(|prices| {
                 if prices.len() > 0 {
