@@ -72,8 +72,7 @@ fn main() {
             }
         }
         insert_prices(&conn,prices);
-    } else {
-        println!("Run update_prices")
-        // update_prices(&conn);
+    } else {        
+        update_prices(&conn);
     }
 }
