@@ -7,7 +7,7 @@ use csv::ReaderBuilder;
 use std::str::FromStr;
 
 mod db;
-use crate::db::{connect, insert_prices};
+use crate::db::{connect, insert_prices, update_prices};
 mod models;
 use models::NewPrice;
 mod onvista;
