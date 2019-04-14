@@ -10,4 +10,4 @@ You need to set the following environment variable:
 
 `DATABASE_URL=postgres://<USER>:<PASSWORD>@<IP ADDRESS>/<DATABASE>`
 
-You also need to fill the 'watchlist' table with ISIN that you want to track.
+You also need to fill the 'watchlist' table with ISINs that you want to track.
