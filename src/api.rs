@@ -54,6 +54,28 @@ fn all(state: State<Pool>) -> Result<Json<Vec<ResponsePrice>>, Status> {
     }
 }
 
+#[get("/<isin>")]
+fn daily_by_isin(isin: String, state: State<Pool>) -> Result<Json<Vec<ResponsePrice>>, Status> {
+    match state.get() {
+        Ok(conn) => match Price::daily(Some(isin), &conn) {
+            Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
+            Err(_error) => Err(Status::InternalServerError),
+        },
+        Err(_error) => Err(Status::InternalServerError),
+    }
+}
+
+#[get("/")]
+fn daily(state: State<Pool>) -> Result<Json<Vec<ResponsePrice>>, Status> {
+    match state.get() {
+        Ok(conn) => match Price::daily(None, &conn) {
+            Ok(prices) => Ok(Json(ResponsePrice::from_prices(prices))),
+            Err(_error) => Err(Status::InternalServerError),
+        },
+        Err(_error) => Err(Status::InternalServerError),
+    }
+}
+
 fn main() {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("Set DATABASE_URL");
@@ -62,6 +84,7 @@ fn main() {
         .manage(pool)
         .mount("/rstock/all/", routes![all,all_by_isin])
         .mount("/rstock/latest/", routes![latest])
+        .mount ("/rstock/daily/", routes![daily, daily_by_isin])
         .launch();
 
 }

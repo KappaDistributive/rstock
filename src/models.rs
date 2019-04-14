@@ -1,9 +1,10 @@
 use bigdecimal::BigDecimal;
-use chrono::{DateTime, Utc};
+use chrono::{Date, DateTime, Utc};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
 use serde::Serialize;
+use std::collections::HashSet;
 
 use crate::schema::prices;
 use crate::schema::prices::dsl::prices as all_prices;
@@ -69,6 +70,44 @@ impl Price {
     }
 
     #[allow(dead_code)]
+    pub fn daily(isin: Option<String>, conn: &PgConnection) -> QueryResult<Vec<Price>> {
+        match isin {
+            Some(i) => {
+                let query_res = all_prices
+                    .filter(prices::isin.eq(i))
+                    .order(prices::time.desc())
+                    .load::<Price>(conn);
+
+                match query_res {
+                    Ok(pricelist) => Ok(Price::only_last_daily_entry(pricelist)),
+                    Err(e) => Err(e),
+                }
+            }
+            None => {
+                let query_res = all_prices.order(prices::time.desc()).load::<Price>(conn);
+                match query_res {
+                    Ok(pricelist) => Ok(Price::only_last_daily_entry(pricelist)),
+                    Err(e) => Err(e),
+                }
+            }
+        }
+    }
+
+    fn only_last_daily_entry(prices: Vec<Price>) -> Vec<Price> {
+        let mut handled: HashSet<(String, Date<Utc>)> = HashSet::new();
+        let mut prices_daily: Vec<Price> = Vec::new();
+        for p in prices {
+            let isin: String = p.isin.clone();
+            let date: Date<Utc> = p.time.date().clone();
+            if !handled.contains(&(isin, date)) {
+                prices_daily.push(p.clone());
+                handled.insert((p.isin.clone(), p.time.date().clone()));
+            }
+        }
+        prices_daily
+    }
+
+    #[allow(dead_code)]
     pub fn find_by_id(id: i32, conn: &PgConnection) -> QueryResult<Price> {
         all_prices.find(id).load::<Price>(conn).and_then(|prices| {
             if prices.len() > 0 {
@@ -83,7 +122,7 @@ impl Price {
     pub fn newest_by_isin(isin: String, conn: &PgConnection) -> QueryResult<Price> {
         all_prices
             .filter(prices::isin.eq(isin))
-            .order (prices::time.desc ())
+            .order(prices::time.desc())
             .load::<Price>(conn)
             .and_then(|prices| {
                 if prices.len() > 0 {
